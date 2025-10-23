@@ -1,0 +1,47 @@
+<div class="online-users-sidebar {{if collapsed 'collapsed'}}">
+  <div class="online-users-header" {{action "toggleCollapse"}}>
+    <span class="header-text">Online Users</span>
+    <span class="collapse-icon">
+      {{#if collapsed}}
+        ▶
+      {{else}}
+        ▼
+      {{/if}}
+    </span>
+  </div>
+
+  {{#unless collapsed}}
+    <div class="online-users-content">
+      {{#if loading}}
+        <div class="loading-container">
+          <div class="spinner"></div>
+          <span>Loading online users...</span>
+        </div>
+      {{else}}
+        {{#each (getSortedGroups onlineUsers) as |group|}}
+          <div class="user-group">
+            <div class="group-header">
+              {{getGroupDisplayName group}}
+            </div>
+            <div class="user-list">
+              {{#each (get onlineUsers group) as |user|}}
+                <div class="user-item" title="{{user.username}}">
+                  <img 
+                    src="{{avatar user.avatar_template size='small'}}" 
+                    alt="{{user.username}}" 
+                    class="user-avatar"
+                  />
+                  <span class="user-name">{{user.username}}</span>
+                </div>
+              {{/each}}
+            </div>
+          </div>
+        {{else}}
+          <div class="no-users">
+            No users online
+          </div>
+        {{/each}}
+      {{/if}}
+    </div>
+  {{/unless}}
+</div>

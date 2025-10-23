@@ -1,0 +1,35 @@
+plugins:
+  online_users_sidebar_enabled:
+    default: true
+    client: true
+
+  online_users_sidebar_refresh_interval:
+    default: 30
+    client: true
+    description: "How often to refresh the online users list (in seconds)"
+    min: 10
+    max: 300
+
+  online_users_sidebar_online_threshold:
+    default: 5
+    client: false
+    description: "How many minutes since last seen to consider a user online"
+    min: 1
+    max: 60
+
+  online_users_sidebar_start_collapsed:
+    default: true
+    client: true
+    description: "Start with the sidebar collapsed"
+
+  online_users_sidebar_show_avatars:
+    default: true
+    client: true
+    description: "Show user avatars in the sidebar"
+
+  online_users_sidebar_sidebar_width:
+    default: 240
+    client: true
+    description: "Width of the sidebar in pixels"
+    min: 200
+    max: 400

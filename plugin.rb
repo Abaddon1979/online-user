@@ -7,12 +7,9 @@
 enabled_site_setting :online_users_sidebar_enabled
 
 register_asset "stylesheets/online-users-sidebar.scss"
-register_asset "stylesheets/common/online-users-sidebar.scss"
-
-register_component("online-users-sidebar")
 
 after_initialize do
-  load File.expand_path("../assets/javascripts/initializers/online-users-sidebar.js.es6", __FILE__)
+  register_asset "javascripts/initializers/online-users-sidebar.js.es6"
 
   module ::OnlineUsersSidebar
     class Engine < ::Rails::Engine

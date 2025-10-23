@@ -6,21 +6,26 @@ function initializeOnlineUsersSidebar(api) {
   // Only show sidebar to logged-in users
   if (!currentUser) return;
 
-  // Add the sidebar component to the application
-  api.onAppEvent("page:changed", () => {
-    // Remove any existing sidebar
-    const existingSidebar = document.querySelector(".online-users-sidebar");
-    if (existingSidebar) {
-      existingSidebar.remove();
+  // Use the standard Discourse approach for adding UI elements
+  api.addSidebarPanel("online-users-sidebar-panel", {
+    header: "Online Users",
+    hidden: false,
+    
+    setupPanel(element) {
+      // Create the component and append it to the panel
+      const component = api.container.lookup("component:online-users-sidebar");
+      if (component) {
+        component.appendTo(element);
+      }
+    },
+    
+    teardownPanel() {
+      // Cleanup when panel is removed
+      const component = api.container.lookup("component:online-users-sidebar");
+      if (component) {
+        component.destroy();
+      }
     }
-
-    // Add the sidebar component
-    const sidebarContainer = document.createElement("div");
-    sidebarContainer.id = "online-users-sidebar-container";
-    document.body.appendChild(sidebarContainer);
-
-    // Render the component
-    api.renderInOutlet("online-users-sidebar-container", "online-users-sidebar");
   });
 }
 

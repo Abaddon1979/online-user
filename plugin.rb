@@ -1,15 +1,14 @@
-# name: Online Users Sidebar
+# name: online-user
 # about: Shows online users in a collapsible sidebar similar to Discord
 # version: 1.0
 # authors: Your Name
-# url: https://github.com/your-repo/online-users-sidebar
+# url: https://github.com/your-repo/online-user
 
-enabled_site_setting :online_users_sidebar_enabled
+enabled_site_setting :online_user_enabled
 
 register_asset "stylesheets/online-users-sidebar.scss"
 
 after_initialize do
-  register_asset "javascripts/initializers/online-users-sidebar.js.es6"
 
   module ::OnlineUsersSidebar
     class Engine < ::Rails::Engine
@@ -21,11 +20,11 @@ after_initialize do
   require_dependency "application_controller"
 
   class OnlineUsersSidebar::OnlineUsersController < ::ApplicationController
-    requires_plugin "online-users-sidebar"
+    requires_plugin "online-user"
 
     def index
       # Get online threshold from settings
-      online_threshold = SiteSetting.online_users_sidebar_online_threshold
+      online_threshold = SiteSetting.online_user_online_threshold
       
       # Get online users (users active within the threshold)
       online_users = User.where("last_seen_at > ?", online_threshold.minutes.ago)

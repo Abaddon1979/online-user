@@ -18,19 +18,15 @@
           <span>Loading online users...</span>
         </div>
       {{else}}
-        {{#each (getSortedGroups onlineUsers) as |group|}}
+        {{#each sortedGroups as |group|}}
           <div class="user-group">
             <div class="group-header">
-              {{getGroupDisplayName group}}
+              {{group.displayName}}
             </div>
             <div class="user-list">
-              {{#each (get onlineUsers group) as |user|}}
+              {{#each group.users as |user|}}
                 <div class="user-item" title="{{user.username}}">
-                  <img 
-                    src="{{avatar user.avatar_template size='small'}}" 
-                    alt="{{user.username}}" 
-                    class="user-avatar"
-                  />
+                  {{avatar user imageSize="small" extraClasses="user-avatar"}}
                   <span class="user-name">{{user.username}}</span>
                 </div>
               {{/each}}

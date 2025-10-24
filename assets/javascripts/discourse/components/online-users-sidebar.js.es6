@@ -3,7 +3,6 @@ import { service } from "@ember/service";
 import { scheduleOnce } from "@ember/runloop";
 import { computed } from "@ember/object";
 import { ajax } from "discourse/lib/ajax";
-import showUserCard from "discourse/lib/show-user-card";
 
 export default Component.extend({
   siteSettings: service(),
@@ -43,12 +42,51 @@ export default Component.extend({
       this.set("collapsed", true);
       scheduleOnce("afterRender", this, this._updateBodyClass);
     }
+
+    // Delegate clicks on usernames to open the core user card anchored to the link
+    this._ousClickHandler = (evt) => {
+      const anchor = evt.target?.closest?.(".user-name, .trigger-user-card");
+      if (!anchor) {
+        return;
+      }
+      // Prevent navigation and open the card instead
+      evt.preventDefault();
+      evt.stopPropagation?.();
+
+      try {
+        anchor.classList.add("trigger-user-card");
+        const userFromData =
+          anchor.getAttribute("data-user-card") ||
+          anchor.dataset?.userCard ||
+          anchor.dataset?.username;
+        const username = userFromData || anchor.textContent?.trim();
+        if (username && !anchor.getAttribute("data-user-card")) {
+          anchor.setAttribute("data-user-card", username);
+        }
+        const ev = new MouseEvent("mouseenter", {
+          bubbles: true,
+          cancelable: true,
+          view: window,
+        });
+        anchor.dispatchEvent(ev);
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn("online-users-sidebar: delegated user card open failed", e);
+      }
+    };
+    this.element.addEventListener("click", this._ousClickHandler);
   },
 
   willDestroyElement() {
     this._super(...arguments);
     if (this.refreshInterval) {
       clearInterval(this.refreshInterval);
+    }
+    if (this._ousClickHandler) {
+      try {
+        this.element?.removeEventListener("click", this._ousClickHandler);
+      } catch {}
+      this._ousClickHandler = null;
     }
     try {
       document.body.classList.remove("online-users-sidebar-open");
@@ -172,7 +210,7 @@ export default Component.extend({
     },
 
     openUserCard(user, event) {
-      // Prevent navigation to /u/username; explicitly open the user card
+      // Prevent navigation to /u/username; open the user card via core hover behavior
       if (event && typeof event.preventDefault === "function") {
         event.preventDefault();
         event.stopPropagation?.();
@@ -183,18 +221,7 @@ export default Component.extend({
         return;
       }
 
-      // Preferred: use core helper to show the user card anchored to the link
-      try {
-        if (user?.username) {
-          showUserCard(user.username, anchor);
-          return;
-        }
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.warn("online-users-sidebar: showUserCard failed, falling back", e);
-      }
-
-      // Fallback: ensure trigger attributes and dispatch a synthetic hover
+      // Ensure trigger attributes and dispatch a synthetic hover to open the card
       try {
         anchor.classList.add("trigger-user-card");
         if (!anchor.getAttribute("data-user-card") && user?.username) {
@@ -204,7 +231,7 @@ export default Component.extend({
         anchor.dispatchEvent(ev);
       } catch (e2) {
         // eslint-disable-next-line no-console
-        console.warn("online-users-sidebar: user card fallback failed", e2);
+        console.warn("online-users-sidebar: user card open failed", e2);
       }
     }
   }

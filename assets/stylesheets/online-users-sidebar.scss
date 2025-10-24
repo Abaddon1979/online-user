@@ -12,7 +12,13 @@
   transition: transform 0.3s ease;
 
   &.collapsed {
-    transform: translateX(100%);
+    /* Leave a 36px sliver visible so the header remains clickable when collapsed */
+    transform: translateX(calc(100% - 36px));
+    pointer-events: none; /* let clicks pass through when collapsed */
+
+    .online-users-header {
+      pointer-events: auto; /* keep header clickable to toggle */
+    }
   }
 
   .online-users-header {
@@ -127,3 +133,10 @@
 }
 
 /* Removed margin-right adjustments to avoid header coupling and related errors */
+
+/* Hide the sidebar entirely on chat pages to avoid covering chat UI */
+.has-full-page-chat .online-users-sidebar,
+.chat-app .online-users-sidebar,
+#chat-container .online-users-sidebar {
+  display: none !important;
+}

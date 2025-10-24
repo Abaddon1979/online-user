@@ -28,6 +28,16 @@ export default {
       return false;
     }
 
+    // Also block on chat by URL or DOM signals
+    const path = window.location?.pathname || "";
+    if (
+      path.startsWith("/chat") ||
+      document.body?.classList?.contains("has-full-page-chat") ||
+      document.querySelector(".chat-app, .chat-fullscreen, #chat-container")
+    ) {
+      return false;
+    }
+
     // Skip if there is no header element present to avoid core header offset errors
     if (!document.querySelector(".d-header")) {
       return false;

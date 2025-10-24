@@ -5,8 +5,10 @@
   width: 240px;
   height: 100vh;
   background: var(--secondary);
+  font-family: var(--font-family, inherit);
   border-left: 1px solid var(--primary-low);
-  z-index: 1000;
+  z-index: 7000;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
   transition: transform 0.3s ease;
@@ -22,6 +24,9 @@
   }
 
   .online-users-header {
+    position: relative;
+    z-index: 7001;
+    font-family: var(--font-family, inherit);
     padding: 15px;
     background: var(--primary-medium);
     color: var(--secondary);
@@ -38,6 +43,11 @@
 
     .collapse-icon {
       font-size: 12px;
+    }
+
+    .header-text {
+      font-size: 15px;
+      font-weight: 600;
     }
   }
 
@@ -70,11 +80,11 @@
 
       .group-header {
         font-weight: bold;
-        color: var(--primary);
+        color: var(--primary-high);
         margin-bottom: 8px;
         padding-bottom: 4px;
         border-bottom: 1px solid var(--primary-low);
-        font-size: 12px;
+        font-size: 13px;
         text-transform: uppercase;
         letter-spacing: 0.5px;
       }
@@ -100,11 +110,13 @@
           }
 
           .user-name {
-            font-size: 13px;
+            font-size: 14px;
+            font-weight: 500;
             color: var(--primary-high);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            font-family: var(--font-family, inherit);
           }
         }
       }
@@ -134,12 +146,7 @@
 
 /* Removed margin-right adjustments to avoid header coupling and related errors */
 
-/* Hide the sidebar entirely on chat pages to avoid covering chat UI */
-.has-full-page-chat .ous-sidebar,
-.chat-app .ous-sidebar,
-#chat-container .ous-sidebar {
-  display: none !important;
-}
+/* Keep the sidebar visible on chat; component collapses by default on chat and header remains clickable */
 
 /* When the sidebar is open, push the main UI over by its width */
 .online-users-sidebar-open .d-header-wrap,

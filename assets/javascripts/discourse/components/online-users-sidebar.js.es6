@@ -36,6 +36,12 @@ export default Component.extend({
     // eslint-disable-next-line no-console
     console.log("online-users-sidebar: didInsertElement");
     scheduleOnce("afterRender", this, this._updateBodyClass);
+
+    // If chat is currently open, start collapsed but do not enforce continuously
+    if (this.isChatOpen() && !this.collapsed) {
+      this.set("collapsed", true);
+      scheduleOnce("afterRender", this, this._updateBodyClass);
+    }
   },
 
   willDestroyElement() {
@@ -129,6 +135,15 @@ export default Component.extend({
     });
     return total;
   }),
+  
+  isChatOpen() {
+    const path = window.location?.pathname || "";
+    if (path.startsWith("/chat")) return true;
+    return (
+      document.body?.classList?.contains("has-full-page-chat") ||
+      document.querySelector(".chat-app, .chat-fullscreen, #chat-container, .chat-drawer")
+    );
+  },
   
   _updateBodyClass() {
     try {

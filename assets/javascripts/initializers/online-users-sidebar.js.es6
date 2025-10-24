@@ -1,7 +1,7 @@
 import { withPluginApi } from "discourse/lib/plugin-api";
 
 export default {
-  name: "online-users-sidebar",
+  name: "online-users-sidebar-init",
 
   initialize() {
     withPluginApi("1.6.0", (api) => {

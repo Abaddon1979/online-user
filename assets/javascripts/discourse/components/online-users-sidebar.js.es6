@@ -25,10 +25,24 @@ export default Component.extend({
     }, intervalSec * 1000);
   },
 
+  didInsertElement() {
+    this._super(...arguments);
+    scheduleOnce("afterRender", this, this._updateBodyClass);
+  },
+
   willDestroyElement() {
     this._super(...arguments);
     if (this.refreshInterval) {
       clearInterval(this.refreshInterval);
+    }
+    try {
+      document.body.classList.remove("online-users-sidebar-open");
+      if (document?.documentElement?.style?.setProperty) {
+        document.documentElement.style.setProperty("--ous-width", null);
+      }
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error("online-users-sidebar: cleanup failed", e);
     }
   },
 
@@ -39,6 +53,8 @@ export default Component.extend({
     
     ajax("/online-users-sidebar/online_users")
       .then((data) => {
+        // eslint-disable-next-line no-console
+        console.log("online-users-sidebar: fetched", data);
         this.set("onlineUsers", data.grouped_users || {});
       })
       .catch((e) => {
@@ -95,9 +111,40 @@ export default Component.extend({
     return typeof w === "number" && w > 0 ? w : 240;
   }),
   
+  totalOnlineCount: computed("onlineUsers", function() {
+    const onlineUsers = this.onlineUsers || {};
+    let total = 0;
+    Object.values(onlineUsers).forEach((arr) => {
+      if (Array.isArray(arr)) {
+        total += arr.length;
+      }
+    });
+    return total;
+  }),
+  
+  _updateBodyClass() {
+    try {
+      const open = !this.collapsed;
+      const body = document.body;
+      if (open) {
+        body.classList.add("online-users-sidebar-open");
+      } else {
+        body.classList.remove("online-users-sidebar-open");
+      }
+      const width = this.get("sidebarWidth");
+      if (document?.documentElement?.style?.setProperty) {
+        document.documentElement.style.setProperty("--ous-width", `${width}px`);
+      }
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error("online-users-sidebar: failed to update layout state", e);
+    }
+  },
+  
   actions: {
     toggleCollapse() {
       this.toggleProperty("collapsed");
+      scheduleOnce("afterRender", this, this._updateBodyClass);
     }
   }
 });

@@ -1,6 +1,6 @@
 <div class="online-users-sidebar {{if collapsed 'collapsed'}}" style="width: {{sidebarWidth}}px;">
   <div class="online-users-header" {{action "toggleCollapse"}}>
-    <span class="header-text">Online Users</span>
+    <span class="header-text">Online Users ({{totalOnlineCount}})</span>
     <span class="collapse-icon">
       {{#if collapsed}}
         ▶

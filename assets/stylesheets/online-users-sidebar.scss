@@ -140,3 +140,13 @@
 #chat-container .online-users-sidebar {
   display: none !important;
 }
+
+/* When the sidebar is open, push the main UI over by its width */
+.online-users-sidebar-open .d-header-wrap,
+.online-users-sidebar-open #main-outlet,
+.online-users-sidebar-open .wrap,
+.online-users-sidebar-open .topic-area,
+.online-users-sidebar-open .timeline-container {
+  margin-right: var(--ous-width);
+  transition: margin-right 0.3s ease;
+}

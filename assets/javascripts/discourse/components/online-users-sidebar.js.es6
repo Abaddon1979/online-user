@@ -15,6 +15,12 @@ export default Component.extend({
     this.set("onlineUsers", {});
     // Respect site setting for initial collapsed state
     this.set("collapsed", !!this.siteSettings?.online_user_start_collapsed);
+    // eslint-disable-next-line no-console
+    console.log("online-users-sidebar: component init", {
+      collapsed: this.collapsed,
+      refresh: this.siteSettings?.online_user_refresh_interval,
+      width: this.siteSettings?.online_user_sidebar_width,
+    });
 
     this.loadOnlineUsers();
     
@@ -27,6 +33,8 @@ export default Component.extend({
 
   didInsertElement() {
     this._super(...arguments);
+    // eslint-disable-next-line no-console
+    console.log("online-users-sidebar: didInsertElement");
     scheduleOnce("afterRender", this, this._updateBodyClass);
   },
 
@@ -51,7 +59,7 @@ export default Component.extend({
     
     this.set("loading", true);
     
-    ajax("/online-users-sidebar/online_users")
+    ajax("/online-users-sidebar/online_users.json")
       .then((data) => {
         // eslint-disable-next-line no-console
         console.log("online-users-sidebar: fetched", data);

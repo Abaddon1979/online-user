@@ -1,4 +1,4 @@
-.online-users-sidebar {
+.ous-sidebar {
   position: fixed;
   top: 0;
   right: 0;
@@ -127,7 +127,7 @@
 
 // Mobile responsiveness
 @media (max-width: 768px) {
-  .online-users-sidebar {
+  .ous-sidebar {
     width: 200px;
   }
 }
@@ -135,9 +135,9 @@
 /* Removed margin-right adjustments to avoid header coupling and related errors */
 
 /* Hide the sidebar entirely on chat pages to avoid covering chat UI */
-.has-full-page-chat .online-users-sidebar,
-.chat-app .online-users-sidebar,
-#chat-container .online-users-sidebar {
+.has-full-page-chat .ous-sidebar,
+.chat-app .ous-sidebar,
+#chat-container .ous-sidebar {
   display: none !important;
 }
 

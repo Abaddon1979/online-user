@@ -1,1 +1,45 @@
-{{!-- Deprecated path. Template moved to: assets/javascripts/discourse/components/online-users-sidebar.hbs --}}
+<div class="ous-sidebar {{if collapsed 'collapsed'}}" style="width: {{sidebarWidth}}px;">
+  <div class="online-users-header" {{action "toggleCollapse"}}>
+    <span class="header-text">Online Users ({{totalOnlineCount}})</span>
+    <span class="collapse-icon">
+      {{#if collapsed}}
+        ▶
+      {{else}}
+        ▼
+      {{/if}}
+    </span>
+  </div>
+
+  {{#unless collapsed}}
+    <div class="online-users-content">
+      {{#if loading}}
+        <div class="loading-container">
+          <div class="spinner"></div>
+          <span>Loading online users...</span>
+        </div>
+      {{else}}
+        {{#each sortedGroups as |group|}}
+          <div class="user-group">
+            <div class="group-header">
+              {{group.displayName}}
+            </div>
+            <div class="user-list">
+              {{#each group.users as |user|}}
+                <div class="user-item" title="{{user.username}}">
+                  {{#if siteSettings.online_user_show_avatars}}
+                    {{avatar user imageSize="small" extraClasses="user-avatar"}}
+                  {{/if}}
+                  <span class="user-name">{{user.username}}</span>
+                </div>
+              {{/each}}
+            </div>
+          </div>
+        {{else}}
+          <div class="no-users">
+            No users online
+          </div>
+        {{/each}}
+      {{/if}}
+    </div>
+  {{/unless}}
+</div>

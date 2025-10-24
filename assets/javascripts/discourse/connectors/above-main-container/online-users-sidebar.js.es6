@@ -11,8 +11,8 @@ export default {
     }
 
     // Only for logged-in users
-    const currentUser = owner.lookup("service:current-user");
-    if (!currentUser) {
+    const currentUserService = owner.lookup("service:current-user");
+    if (!currentUserService?.currentUser) {
       return false;
     }
 

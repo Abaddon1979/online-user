@@ -2,7 +2,7 @@ import Component from "@ember/component";
 import { service } from "@ember/service";
 import { scheduleOnce } from "@ember/runloop";
 import { computed } from "@ember/object";
-import ajax from "discourse/lib/ajax";
+import { ajax } from "discourse/lib/ajax";
 
 export default Component.extend({
   siteSettings: service(),

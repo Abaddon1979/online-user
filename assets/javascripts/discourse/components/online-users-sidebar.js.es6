@@ -168,6 +168,41 @@ export default Component.extend({
     toggleCollapse() {
       this.toggleProperty("collapsed");
       scheduleOnce("afterRender", this, this._updateBodyClass);
+    },
+
+    openUserCard(user, event) {
+      // Prevent navigation to /u/username; let Discourse show the user card
+      if (event && typeof event.preventDefault === "function") {
+        event.preventDefault();
+        event.stopPropagation?.();
+      }
+
+      // Anchor element for the core user-card behavior
+      const anchor = event?.currentTarget || event?.target;
+      if (!anchor) {
+        return;
+      }
+
+      // Ensure the element has the trigger attributes Discourse looks for
+      try {
+        anchor.classList.add("trigger-user-card");
+        if (!anchor.getAttribute("data-user-card") && user?.username) {
+          anchor.setAttribute("data-user-card", user.username);
+        }
+      } catch {}
+
+      // Trigger the built-in hover handler to open the card near the link
+      try {
+        const ev = new MouseEvent("mouseenter", {
+          bubbles: true,
+          cancelable: true,
+          view: window,
+        });
+        anchor.dispatchEvent(ev);
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn("online-users-sidebar: failed to dispatch mouseenter", e);
+      }
     }
   }
 });

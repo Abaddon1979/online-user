@@ -126,23 +126,4 @@
   }
 }
 
-// Ensure the sidebar doesn't overlap with Discourse's own elements
-.d-header,
-.topic-post,
-.timeline-container {
-  transition: margin-right 0.3s ease;
-}
-
-.online-users-sidebar:not(.collapsed) ~ .d-header,
-.online-users-sidebar:not(.collapsed) ~ .topic-post,
-.online-users-sidebar:not(.collapsed) ~ .timeline-container {
-  margin-right: 240px;
-}
-
-@media (max-width: 768px) {
-  .online-users-sidebar:not(.collapsed) ~ .d-header,
-  .online-users-sidebar:not(.collapsed) ~ .topic-post,
-  .online-users-sidebar:not(.collapsed) ~ .timeline-container {
-    margin-right: 200px;
-  }
-}
+/* Removed margin-right adjustments to avoid header coupling and related errors */

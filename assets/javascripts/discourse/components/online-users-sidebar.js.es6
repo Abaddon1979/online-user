@@ -209,9 +209,6 @@ export default Component.extend({
     }
   },
   
-  toggleCollapseFn() {
-    this.send("toggleCollapse");
-  },
   
   actions: {
     toggleCollapse() {

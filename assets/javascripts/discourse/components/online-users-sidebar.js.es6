@@ -6,6 +6,7 @@ import { ajax } from "discourse/lib/ajax";
 
 export default Component.extend({
   siteSettings: service(),
+  appEvents: service(),
   onlineUsers: null,
   loading: false,
   collapsed: true,
@@ -268,51 +269,59 @@ export default Component.extend({
 
     const anchor = event?.currentTarget || event?.target;
     if (!anchor) {
+      console.log("online-users-sidebar: no anchor found");
       return;
     }
 
-    // Ensure trigger attributes and dispatch a synthetic hover to open the card
+    const uname = user?.username;
+    if (!uname) {
+      console.log("online-users-sidebar: no username");
+      return;
+    }
+
+    // Try appEvents trigger (Discourse modern approach)
     try {
-      anchor.classList.add("trigger-user-card");
-      if (!anchor.getAttribute("data-user-card") && user?.username) {
-        anchor.setAttribute("data-user-card", user.username);
-      }
-      const uname = user?.username || anchor.textContent?.trim();
-      let usedCore = false;
-      if (uname) {
-        try {
-          if (window.ousShowUserCard) {
-            window.ousShowUserCard(uname, anchor);
-            usedCore = true;
-          }
-        } catch (e3) {}
-        if (!usedCore && typeof window.require === "function") {
-          try {
-            const mod = window.require("discourse/lib/user-card");
-            const fn =
-              mod?.showUser ||
-              mod?.show ||
-              mod?.open ||
-              mod?.default?.showUser ||
-              mod?.default?.show;
-            if (typeof fn === "function") {
-              fn(uname, anchor);
-              usedCore = true;
-            }
-          } catch (e4) {}
-        }
-      }
-      if (usedCore) {
+      if (this.appEvents) {
+        console.log("online-users-sidebar: trying appEvents.trigger");
+        this.appEvents.trigger("card:show", uname, anchor);
         return;
       }
-      const ev1 = new MouseEvent("mouseenter", { bubbles: true, cancelable: true, view: window });
-      anchor.dispatchEvent(ev1);
-      const ev2 = new MouseEvent("mouseover", { bubbles: true, cancelable: true, view: window });
-      anchor.dispatchEvent(ev2);
-    } catch (e2) {
-      // eslint-disable-next-line no-console
-      console.warn("online-users-sidebar: user card open failed", e2);
+    } catch (e1) {
+      console.log("online-users-sidebar: appEvents failed", e1);
     }
+
+    // Try card service
+    try {
+      if (this.cardService) {
+        console.log("online-users-sidebar: trying cardService.showCard");
+        this.cardService.showCard("user", anchor, uname);
+        return;
+      }
+    } catch (e2) {
+      console.log("online-users-sidebar: cardService failed", e2);
+    }
+
+    // Ensure attributes for core handlers
+    anchor.classList.add("trigger-user-card");
+    anchor.setAttribute("data-user-card", uname);
+    
+    // Try window bridge
+    try {
+      if (window.ousShowUserCard) {
+        console.log("online-users-sidebar: trying ousShowUserCard");
+        window.ousShowUserCard(uname, anchor);
+        return;
+      }
+    } catch (e3) {
+      console.log("online-users-sidebar: ousShowUserCard failed", e3);
+    }
+
+    // Dispatch events and let core handlers pick them up
+    console.log("online-users-sidebar: dispatching mouseenter/mouseover");
+    const ev1 = new MouseEvent("mouseenter", { bubbles: true, cancelable: true, view: window });
+    anchor.dispatchEvent(ev1);
+    const ev2 = new MouseEvent("mouseover", { bubbles: true, cancelable: true, view: window });
+    anchor.dispatchEvent(ev2);
   },
 
   actions: {

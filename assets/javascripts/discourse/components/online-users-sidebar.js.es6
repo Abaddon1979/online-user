@@ -57,7 +57,6 @@ export default Component.extend({
       }
       // Prevent navigation and open the card instead
       evt.preventDefault();
-      evt.stopPropagation?.();
 
       try {
         anchor.classList.add("trigger-user-card");
@@ -69,12 +68,24 @@ export default Component.extend({
         if (username && !anchor.getAttribute("data-user-card")) {
           anchor.setAttribute("data-user-card", username);
         }
-        const ev = new MouseEvent("mouseenter", {
+        if (username && window.ousShowUserCard) {
+          try {
+            window.ousShowUserCard(username, anchor);
+            return;
+          } catch (e3) {}
+        }
+        const ev1 = new MouseEvent("mouseenter", {
           bubbles: true,
           cancelable: true,
           view: window,
         });
-        anchor.dispatchEvent(ev);
+        anchor.dispatchEvent(ev1);
+        const ev2 = new MouseEvent("mouseover", {
+          bubbles: true,
+          cancelable: true,
+          view: window,
+        });
+        anchor.dispatchEvent(ev2);
       } catch (e) {
         // eslint-disable-next-line no-console
         console.warn("online-users-sidebar: delegated user card open failed", e);
@@ -220,7 +231,6 @@ export default Component.extend({
       // Prevent navigation to /u/username; open the user card via core hover behavior
       if (event && typeof event.preventDefault === "function") {
         event.preventDefault();
-        event.stopPropagation?.();
       }
 
       const anchor = event?.currentTarget || event?.target;
@@ -234,8 +244,16 @@ export default Component.extend({
         if (!anchor.getAttribute("data-user-card") && user?.username) {
           anchor.setAttribute("data-user-card", user.username);
         }
-        const ev = new MouseEvent("mouseenter", { bubbles: true, cancelable: true, view: window });
-        anchor.dispatchEvent(ev);
+        if ((user?.username || anchor.textContent?.trim()) && window.ousShowUserCard) {
+          try {
+            window.ousShowUserCard(user?.username || anchor.textContent?.trim(), anchor);
+            return;
+          } catch (e3) {}
+        }
+        const ev1 = new MouseEvent("mouseenter", { bubbles: true, cancelable: true, view: window });
+        anchor.dispatchEvent(ev1);
+        const ev2 = new MouseEvent("mouseover", { bubbles: true, cancelable: true, view: window });
+        anchor.dispatchEvent(ev2);
       } catch (e2) {
         // eslint-disable-next-line no-console
         console.warn("online-users-sidebar: user card open failed", e2);

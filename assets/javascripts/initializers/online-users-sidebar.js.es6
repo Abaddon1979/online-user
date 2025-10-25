@@ -5,9 +5,21 @@ export default {
 
   initialize() {
     withPluginApi("1.6.0", (api) => {
-      // Rendering is handled via the plugin outlet connector:
-      // assets/javascripts/discourse/connectors/below-site-header/online-users-sidebar.hbs
-      // This initializer intentionally does not render anything.
+      // Attach core user-card behavior to our sidebar container (safe if method exists)
+      try {
+        api.attachUserCard?.(".ous-sidebar");
+      } catch (e) {}
+
+      // Expose a global helper so the component can call the core API directly
+      try {
+        window.ousShowUserCard = function (username, target) {
+          try {
+            api.showUserCard?.(username, target);
+          } catch (e2) {
+            // no-op fallback, component will synthesize hover events
+          }
+        };
+      } catch (e) {}
     });
   }
 };

@@ -157,3 +157,8 @@
   margin-right: var(--ous-width);
   transition: margin-right 0.3s ease;
 }
+
+/* Ensure the core user card overlays the sidebar */
+.user-card {
+  z-index: 10010 !important;
+}

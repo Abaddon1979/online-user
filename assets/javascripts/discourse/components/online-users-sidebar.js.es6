@@ -259,66 +259,66 @@ export default Component.extend({
     }
   },
   
-  
+  openUserCard(user, event) {
+    try { console.log("online-users-sidebar: openUserCard called", { user, event }); } catch {}
+    // Prevent navigation to /u/username; open the user card via core hover behavior
+    if (event && typeof event.preventDefault === "function") {
+      event.preventDefault();
+    }
+
+    const anchor = event?.currentTarget || event?.target;
+    if (!anchor) {
+      return;
+    }
+
+    // Ensure trigger attributes and dispatch a synthetic hover to open the card
+    try {
+      anchor.classList.add("trigger-user-card");
+      if (!anchor.getAttribute("data-user-card") && user?.username) {
+        anchor.setAttribute("data-user-card", user.username);
+      }
+      const uname = user?.username || anchor.textContent?.trim();
+      let usedCore = false;
+      if (uname) {
+        try {
+          if (window.ousShowUserCard) {
+            window.ousShowUserCard(uname, anchor);
+            usedCore = true;
+          }
+        } catch (e3) {}
+        if (!usedCore && typeof window.require === "function") {
+          try {
+            const mod = window.require("discourse/lib/user-card");
+            const fn =
+              mod?.showUser ||
+              mod?.show ||
+              mod?.open ||
+              mod?.default?.showUser ||
+              mod?.default?.show;
+            if (typeof fn === "function") {
+              fn(uname, anchor);
+              usedCore = true;
+            }
+          } catch (e4) {}
+        }
+      }
+      if (usedCore) {
+        return;
+      }
+      const ev1 = new MouseEvent("mouseenter", { bubbles: true, cancelable: true, view: window });
+      anchor.dispatchEvent(ev1);
+      const ev2 = new MouseEvent("mouseover", { bubbles: true, cancelable: true, view: window });
+      anchor.dispatchEvent(ev2);
+    } catch (e2) {
+      // eslint-disable-next-line no-console
+      console.warn("online-users-sidebar: user card open failed", e2);
+    }
+  },
+
   actions: {
     toggleCollapse() {
       this.toggleProperty("collapsed");
       scheduleOnce("afterRender", this, this._updateBodyClass);
-    },
-
-    openUserCard(user, event) {
-      // Prevent navigation to /u/username; open the user card via core hover behavior
-      if (event && typeof event.preventDefault === "function") {
-        event.preventDefault();
-      }
-
-      const anchor = event?.currentTarget || event?.target;
-      if (!anchor) {
-        return;
-      }
-
-      // Ensure trigger attributes and dispatch a synthetic hover to open the card
-      try {
-        anchor.classList.add("trigger-user-card");
-        if (!anchor.getAttribute("data-user-card") && user?.username) {
-          anchor.setAttribute("data-user-card", user.username);
-        }
-        const uname = user?.username || anchor.textContent?.trim();
-        let usedCore = false;
-        if (uname) {
-          try {
-            if (window.ousShowUserCard) {
-              window.ousShowUserCard(uname, anchor);
-              usedCore = true;
-            }
-          } catch (e3) {}
-          if (!usedCore && typeof window.require === "function") {
-            try {
-              const mod = window.require("discourse/lib/user-card");
-              const fn =
-                mod?.showUser ||
-                mod?.show ||
-                mod?.open ||
-                mod?.default?.showUser ||
-                mod?.default?.show;
-              if (typeof fn === "function") {
-                fn(uname, anchor);
-                usedCore = true;
-              }
-            } catch (e4) {}
-          }
-        }
-        if (usedCore) {
-          return;
-        }
-        const ev1 = new MouseEvent("mouseenter", { bubbles: true, cancelable: true, view: window });
-        anchor.dispatchEvent(ev1);
-        const ev2 = new MouseEvent("mouseover", { bubbles: true, cancelable: true, view: window });
-        anchor.dispatchEvent(ev2);
-      } catch (e2) {
-        // eslint-disable-next-line no-console
-        console.warn("online-users-sidebar: user card open failed", e2);
-      }
     }
   }
 });

@@ -4,7 +4,7 @@ export default {
   name: "online-users-sidebar-init",
 
   initialize() {
-    withPluginApi("1.6.0", (api) => {
+    withPluginApi("0.1", (api) => {
       // Attach core user-card behavior to our sidebar container (safe if method exists)
       try {
         api.attachUserCard?.(".ous-sidebar");
@@ -20,6 +20,7 @@ export default {
           }
         };
       } catch (e) {}
+
     });
   }
 };

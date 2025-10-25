@@ -51,7 +51,9 @@ export default Component.extend({
 
     // Delegate clicks on usernames to open the core user card anchored to the link
     this._ousClickHandler = (evt) => {
-      const anchor = evt.target?.closest?.('a[data-user-card], .user-name, .trigger-user-card');
+      const t = evt.target;
+      const el = t && t.nodeType === 3 ? t.parentElement : t;
+      const anchor = el?.closest?.('a[data-user-card], .user-name, .trigger-user-card');
       if (!anchor) {
         return;
       }
@@ -65,14 +67,48 @@ export default Component.extend({
           anchor.dataset?.userCard ||
           anchor.dataset?.username;
         const username = userFromData || anchor.textContent?.trim();
+        try { console.log("online-users-sidebar: click username resolved", { username, anchor }); } catch {}
         if (username && !anchor.getAttribute("data-user-card")) {
           anchor.setAttribute("data-user-card", username);
         }
-        if (username && window.ousShowUserCard) {
+        let usedCore = false;
+        if (username) {
           try {
-            window.ousShowUserCard(username, anchor);
-            return;
+            if (window.ousShowUserCard) {
+              window.ousShowUserCard(username, anchor);
+              usedCore = true;
+            }
           } catch (e3) {}
+          if (!usedCore && typeof window.require === "function") {
+            try {
+              const candidates = [
+                "discourse/lib/show-user-card",
+                "discourse/lib/user-card",
+                "discourse/lib/show-user",
+                "discourse/widgets/user-card"
+              ];
+              for (let i = 0; i < candidates.length && !usedCore; i++) {
+                try {
+                  const mod = window.require(candidates[i]);
+                  const fn =
+                    mod?.showUser ||
+                    mod?.show ||
+                    mod?.open ||
+                    mod?.default?.showUser ||
+                    mod?.default?.show;
+                  if (typeof fn === "function") {
+                    try { console.log("online-users-sidebar: opening via module", candidates[i]); } catch {}
+                    fn(username, anchor);
+                    usedCore = true;
+                    break;
+                  }
+                } catch (e5) {}
+              }
+            } catch (e4) {}
+          }
+        }
+        if (usedCore) {
+          return;
         }
         const ev1 = new MouseEvent("mouseenter", {
           bubbles: true,
@@ -91,7 +127,10 @@ export default Component.extend({
         console.warn("online-users-sidebar: delegated user card open failed", e);
       }
     };
-    this.element.addEventListener("click", this._ousClickHandler);
+    // no custom click handler; using core user-link
+    // this.element.addEventListener("click", this._ousClickHandler);
+    // try { console.log("online-users-sidebar: bound click handler"); } catch {}
+    try { console.log("online-users-sidebar: not binding click handler (using core user-link)"); } catch {}
   },
 
   willDestroyElement() {
@@ -244,11 +283,33 @@ export default Component.extend({
         if (!anchor.getAttribute("data-user-card") && user?.username) {
           anchor.setAttribute("data-user-card", user.username);
         }
-        if ((user?.username || anchor.textContent?.trim()) && window.ousShowUserCard) {
+        const uname = user?.username || anchor.textContent?.trim();
+        let usedCore = false;
+        if (uname) {
           try {
-            window.ousShowUserCard(user?.username || anchor.textContent?.trim(), anchor);
-            return;
+            if (window.ousShowUserCard) {
+              window.ousShowUserCard(uname, anchor);
+              usedCore = true;
+            }
           } catch (e3) {}
+          if (!usedCore && typeof window.require === "function") {
+            try {
+              const mod = window.require("discourse/lib/user-card");
+              const fn =
+                mod?.showUser ||
+                mod?.show ||
+                mod?.open ||
+                mod?.default?.showUser ||
+                mod?.default?.show;
+              if (typeof fn === "function") {
+                fn(uname, anchor);
+                usedCore = true;
+              }
+            } catch (e4) {}
+          }
+        }
+        if (usedCore) {
+          return;
         }
         const ev1 = new MouseEvent("mouseenter", { bubbles: true, cancelable: true, view: window });
         anchor.dispatchEvent(ev1);

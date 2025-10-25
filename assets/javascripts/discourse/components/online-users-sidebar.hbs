@@ -1,8 +1,8 @@
-<div class="ous-sidebar {{if collapsed 'collapsed'}}" style="width: {{sidebarWidth}}px;">
-  <div class="online-users-header" {{action "toggleCollapse"}}>
-    <span class="header-text">Online Users ({{totalOnlineCount}})</span>
+<div class="ous-sidebar {{if this.collapsed 'collapsed'}}" style="width: {{this.sidebarWidth}}px;">
+  <div class="online-users-header" {{on "click" this.toggleCollapseFn}}>
+    <span class="header-text">Online Users ({{this.totalOnlineCount}})</span>
     <span class="collapse-icon">
-      {{#if collapsed}}
+      {{#if this.collapsed}}
         ▶
       {{else}}
         ▼
@@ -10,15 +10,15 @@
     </span>
   </div>
 
-  {{#unless collapsed}}
+  {{#unless this.collapsed}}
     <div class="online-users-content">
-      {{#if loading}}
+      {{#if this.loading}}
         <div class="loading-container">
           <div class="spinner"></div>
           <span>Loading online users...</span>
         </div>
       {{else}}
-        {{#each sortedGroups as |group|}}
+        {{#each this.sortedGroups as |group|}}
           <div class="user-group">
             <div class="group-header">
               {{group.displayName}}
@@ -26,7 +26,7 @@
             <div class="user-list">
               {{#each group.users as |user|}}
                 <div class="user-item" title="{{user.username}}">
-                  {{#if siteSettings.online_user_show_avatars}}
+                  {{#if this.siteSettings.online_user_show_avatars}}
                     {{avatar user imageSize="small" extraClasses="user-avatar"}}
                   {{/if}}
                   {{user-link user class="user-name"}}

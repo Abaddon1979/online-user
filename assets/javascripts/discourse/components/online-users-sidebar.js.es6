@@ -45,7 +45,7 @@ export default Component.extend({
 
     // Delegate clicks on usernames to open the core user card anchored to the link
     this._ousClickHandler = (evt) => {
-      const anchor = evt.target?.closest?.(".user-name, .trigger-user-card");
+      const anchor = evt.target?.closest?.('a[data-user-card], .user-name, .trigger-user-card');
       if (!anchor) {
         return;
       }
@@ -201,6 +201,10 @@ export default Component.extend({
       // eslint-disable-next-line no-console
       console.error("online-users-sidebar: failed to update layout state", e);
     }
+  },
+  
+  toggleCollapseFn() {
+    this.send("toggleCollapse");
   },
   
   actions: {

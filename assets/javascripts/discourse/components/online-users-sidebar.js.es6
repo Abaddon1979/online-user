@@ -267,15 +267,16 @@ export default Component.extend({
   
   _openUserCard(user, event) {
     const debug = this.siteSettings?.online_user_debug;
-    
-    if (debug) console.log("online-users-sidebar: _openUserCard called", { 
-      user, 
-      event,
-      thisContext: this,
-      hasAppEvents: !!this.appEvents,
-      hasSiteSettings: !!this.siteSettings
-    });
-    
+
+    if (debug)
+      console.log("online-users-sidebar: _openUserCard called", {
+        user,
+        event,
+        thisContext: this,
+        hasAppEvents: !!this.appEvents,
+        hasSiteSettings: !!this.siteSettings,
+      });
+
     // Prevent navigation to /u/username; open the user card via core hover behavior
     if (event && typeof event.preventDefault === "function") {
       event.preventDefault();
@@ -293,61 +294,163 @@ export default Component.extend({
       return;
     }
 
+    // Ensure attributes for core handlers/positioning
+    try {
+      anchor.classList.add("trigger-user-card");
+      if (!anchor.getAttribute("data-user-card")) {
+        anchor.setAttribute("data-user-card", uname);
+      }
+    } catch {}
+
     if (debug) console.log("online-users-sidebar: username resolved", uname);
 
-    // Try appEvents trigger (Discourse modern approach)
-    try {
-      if (this.appEvents) {
-        if (debug) console.log("online-users-sidebar: trying appEvents.trigger");
-        this.appEvents.trigger("card:show", uname, anchor);
-        if (debug) console.log("online-users-sidebar: appEvents.trigger succeeded");
-        return;
-      } else if (debug) {
-        console.log("online-users-sidebar: this.appEvents is not available");
+    // Helper: detect if a user card element appeared
+    const isCardVisible = () => {
+      try {
+        const el =
+          document.querySelector(".user-card") ||
+          document.querySelector(".user-card-container") ||
+          document.querySelector("#user-card");
+        if (!el) return false;
+        const style = window.getComputedStyle(el);
+        const rect = el.getBoundingClientRect();
+        return (
+          style.visibility !== "hidden" &&
+          style.display !== "none" &&
+          rect.width > 0 &&
+          rect.height > 0
+        );
+      } catch {
+        return false;
       }
-    } catch (e1) {
-      if (debug) console.log("online-users-sidebar: appEvents failed", e1);
-    }
+    };
 
-    // Try card service
-    try {
-      if (this.cardService) {
-        if (debug) console.log("online-users-sidebar: trying cardService.showCard");
-        this.cardService.showCard("user", anchor, uname);
-        if (debug) console.log("online-users-sidebar: cardService.showCard succeeded");
-        return;
-      } else if (debug) {
-        console.log("online-users-sidebar: this.cardService is not available");
+    // Attempt 1: PluginAPI bridge (most reliable)
+    const tryPluginApi = () => {
+      try {
+        if (window.ousShowUserCard) {
+          if (debug) console.log("online-users-sidebar: trying ousShowUserCard");
+          window.ousShowUserCard(uname, anchor);
+          setTimeout(() => {
+            if (isCardVisible()) {
+              if (debug) console.log("online-users-sidebar: user card visible via ousShowUserCard");
+              return;
+            }
+            if (debug) console.log("online-users-sidebar: ousShowUserCard did not show card, falling back to require()");
+            tryRequire();
+          }, 150);
+          return true;
+        } else if (debug) {
+          console.log("online-users-sidebar: window.ousShowUserCard is not available");
+        }
+      } catch (e) {
+        if (debug) console.log("online-users-sidebar: ousShowUserCard failed", e);
       }
-    } catch (e2) {
-      if (debug) console.log("online-users-sidebar: cardService failed", e2);
-    }
+      return false;
+    };
 
-    // Ensure attributes for core handlers
-    anchor.classList.add("trigger-user-card");
-    anchor.setAttribute("data-user-card", uname);
-    
-    // Try window bridge
-    try {
-      if (window.ousShowUserCard) {
-        if (debug) console.log("online-users-sidebar: trying ousShowUserCard");
-        window.ousShowUserCard(uname, anchor);
-        if (debug) console.log("online-users-sidebar: ousShowUserCard succeeded");
-        return;
-      } else if (debug) {
-        console.log("online-users-sidebar: window.ousShowUserCard is not available");
+    // Attempt 2: Require core module directly
+    const tryRequire = () => {
+      let used = false;
+      try {
+        if (typeof window.require === "function") {
+          const candidates = [
+            "discourse/lib/show-user-card",
+            "discourse/lib/user-card",
+            "discourse/lib/show-user",
+            "discourse/widgets/user-card",
+          ];
+          for (let i = 0; i < candidates.length && !used; i++) {
+            try {
+              const mod = window.require(candidates[i]);
+              const fn =
+                mod?.showUser ||
+                mod?.show ||
+                mod?.open ||
+                mod?.default?.showUser ||
+                mod?.default?.show;
+              if (typeof fn === "function") {
+                if (debug) console.log("online-users-sidebar: opening via module", candidates[i]);
+                fn(uname, anchor);
+                used = true;
+                break;
+              }
+            } catch {}
+          }
+        }
+      } catch (e) {
+        if (debug) console.log("online-users-sidebar: require fallback failed setup", e);
       }
-    } catch (e3) {
-      if (debug) console.log("online-users-sidebar: ousShowUserCard failed", e3);
-    }
 
-    // Dispatch events and let core handlers pick them up
-    if (debug) console.log("online-users-sidebar: dispatching mouseenter/mouseover");
-    const ev1 = new MouseEvent("mouseenter", { bubbles: true, cancelable: true, view: window });
-    anchor.dispatchEvent(ev1);
-    const ev2 = new MouseEvent("mouseover", { bubbles: true, cancelable: true, view: window });
-    anchor.dispatchEvent(ev2);
-    if (debug) console.log("online-users-sidebar: events dispatched");
+      setTimeout(() => {
+        if (isCardVisible()) {
+          if (debug) console.log("online-users-sidebar: user card visible via require()");
+          return;
+        }
+        if (debug) console.log("online-users-sidebar: require() did not show card, trying appEvents");
+        tryAppEvents();
+      }, 150);
+    };
+
+    // Attempt 3: appEvents with expected payload signature
+    const tryAppEvents = () => {
+      try {
+        if (this.appEvents) {
+          if (debug) console.log("online-users-sidebar: trying appEvents.trigger with payload");
+          this.appEvents.trigger("card:show", {
+            cardType: "user",
+            username: uname,
+            target: anchor,
+          });
+        } else if (debug) {
+          console.log("online-users-sidebar: this.appEvents is not available");
+        }
+      } catch (e) {
+        if (debug) console.log("online-users-sidebar: appEvents failed", e);
+      }
+      setTimeout(() => {
+        if (isCardVisible()) {
+          if (debug) console.log("online-users-sidebar: user card visible via appEvents");
+          return;
+        }
+        if (debug) console.log("online-users-sidebar: appEvents did not show card, dispatching hover events");
+        tryHoverEvents();
+      }, 150);
+    };
+
+    // Attempt 4: Synthesize hover events as last resort
+    const tryHoverEvents = () => {
+      try {
+        if (debug) console.log("online-users-sidebar: dispatching mouseenter/mouseover");
+        const ev1 = new MouseEvent("mouseenter", {
+          bubbles: true,
+          cancelable: true,
+          view: window,
+        });
+        anchor.dispatchEvent(ev1);
+        const ev2 = new MouseEvent("mouseover", {
+          bubbles: true,
+          cancelable: true,
+          view: window,
+        });
+        anchor.dispatchEvent(ev2);
+      } catch (e) {
+        if (debug) console.log("online-users-sidebar: hover dispatch failed", e);
+      }
+      setTimeout(() => {
+        if (isCardVisible()) {
+          if (debug) console.log("online-users-sidebar: user card visible via hover events");
+        } else if (debug) {
+          console.log("online-users-sidebar: user card still not visible after all attempts");
+        }
+      }, 150);
+    };
+
+    // Start the chain with PluginAPI
+    if (!tryPluginApi()) {
+      // If plugin API not available, jump straight to require fallback
+      tryRequire();
+    }
   },
 
   actions: {

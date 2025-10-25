@@ -29,7 +29,7 @@
                   {{#if this.siteSettings.online_user_show_avatars}}
                     {{avatar user imageSize="small" extraClasses="user-avatar"}}
                   {{/if}}
-                  <a class="user-name trigger-user-card" data-user-card="{{user.username}}" href="/u/{{user.username}}" {{on "click" (fn this.openUserCard user)}}>{{user.username}}</a>
+                  <a class="user-name trigger-user-card" data-user-card="{{user.username}}" href="/u/{{user.username}}" {{on "click" (fn this.openUserCardFn user)}}>{{user.username}}</a>
                 </div>
               {{/each}}
             </div>

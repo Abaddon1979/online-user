@@ -36,6 +36,11 @@ export default Component.extend({
       this.toggleProperty("collapsed");
       scheduleOnce("afterRender", this, this._updateBodyClass);
     };
+
+    // Bind openUserCard function so `this` context is preserved
+    this.openUserCardFn = (user, event) => {
+      this._openUserCard(user, event);
+    };
   },
 
   didInsertElement() {
@@ -260,8 +265,17 @@ export default Component.extend({
     }
   },
   
-  openUserCard(user, event) {
-    try { console.log("online-users-sidebar: openUserCard called", { user, event }); } catch {}
+  _openUserCard(user, event) {
+    const debug = this.siteSettings?.online_user_debug;
+    
+    if (debug) console.log("online-users-sidebar: _openUserCard called", { 
+      user, 
+      event,
+      thisContext: this,
+      hasAppEvents: !!this.appEvents,
+      hasSiteSettings: !!this.siteSettings
+    });
+    
     // Prevent navigation to /u/username; open the user card via core hover behavior
     if (event && typeof event.preventDefault === "function") {
       event.preventDefault();
@@ -269,36 +283,44 @@ export default Component.extend({
 
     const anchor = event?.currentTarget || event?.target;
     if (!anchor) {
-      console.log("online-users-sidebar: no anchor found");
+      if (debug) console.log("online-users-sidebar: no anchor found");
       return;
     }
 
     const uname = user?.username;
     if (!uname) {
-      console.log("online-users-sidebar: no username");
+      if (debug) console.log("online-users-sidebar: no username");
       return;
     }
+
+    if (debug) console.log("online-users-sidebar: username resolved", uname);
 
     // Try appEvents trigger (Discourse modern approach)
     try {
       if (this.appEvents) {
-        console.log("online-users-sidebar: trying appEvents.trigger");
+        if (debug) console.log("online-users-sidebar: trying appEvents.trigger");
         this.appEvents.trigger("card:show", uname, anchor);
+        if (debug) console.log("online-users-sidebar: appEvents.trigger succeeded");
         return;
+      } else if (debug) {
+        console.log("online-users-sidebar: this.appEvents is not available");
       }
     } catch (e1) {
-      console.log("online-users-sidebar: appEvents failed", e1);
+      if (debug) console.log("online-users-sidebar: appEvents failed", e1);
     }
 
     // Try card service
     try {
       if (this.cardService) {
-        console.log("online-users-sidebar: trying cardService.showCard");
+        if (debug) console.log("online-users-sidebar: trying cardService.showCard");
         this.cardService.showCard("user", anchor, uname);
+        if (debug) console.log("online-users-sidebar: cardService.showCard succeeded");
         return;
+      } else if (debug) {
+        console.log("online-users-sidebar: this.cardService is not available");
       }
     } catch (e2) {
-      console.log("online-users-sidebar: cardService failed", e2);
+      if (debug) console.log("online-users-sidebar: cardService failed", e2);
     }
 
     // Ensure attributes for core handlers
@@ -308,20 +330,24 @@ export default Component.extend({
     // Try window bridge
     try {
       if (window.ousShowUserCard) {
-        console.log("online-users-sidebar: trying ousShowUserCard");
+        if (debug) console.log("online-users-sidebar: trying ousShowUserCard");
         window.ousShowUserCard(uname, anchor);
+        if (debug) console.log("online-users-sidebar: ousShowUserCard succeeded");
         return;
+      } else if (debug) {
+        console.log("online-users-sidebar: window.ousShowUserCard is not available");
       }
     } catch (e3) {
-      console.log("online-users-sidebar: ousShowUserCard failed", e3);
+      if (debug) console.log("online-users-sidebar: ousShowUserCard failed", e3);
     }
 
     // Dispatch events and let core handlers pick them up
-    console.log("online-users-sidebar: dispatching mouseenter/mouseover");
+    if (debug) console.log("online-users-sidebar: dispatching mouseenter/mouseover");
     const ev1 = new MouseEvent("mouseenter", { bubbles: true, cancelable: true, view: window });
     anchor.dispatchEvent(ev1);
     const ev2 = new MouseEvent("mouseover", { bubbles: true, cancelable: true, view: window });
     anchor.dispatchEvent(ev2);
+    if (debug) console.log("online-users-sidebar: events dispatched");
   },
 
   actions: {

@@ -33,3 +33,8 @@ plugins:
     description: "Width of the sidebar in pixels"
     min: 200
     max: 400
+
+  online_user_debug:
+    default: false
+    client: true
+    description: "Enable debug logging for usercard interactions"

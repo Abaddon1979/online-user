@@ -29,6 +29,12 @@ export default Component.extend({
     this.refreshInterval = setInterval(() => {
       this.loadOnlineUsers();
     }, intervalSec * 1000);
+
+    // Bind a function used by {{on "click" this.toggleCollapseFn}} so `this` is the component
+    this.toggleCollapseFn = () => {
+      this.toggleProperty("collapsed");
+      scheduleOnce("afterRender", this, this._updateBodyClass);
+    };
   },
 
   didInsertElement() {

@@ -461,16 +461,46 @@ export default Component.extend({
       }, 150);
     };
 
-    // Attempt 3: appEvents with expected payload signature
+    // Attempt 3: appEvents with multiple payload signatures (to cover core variants)
     const tryAppEvents = () => {
+      let fired = false;
       try {
         if (this.appEvents) {
-          if (debug) console.log("online-users-sidebar: trying appEvents.trigger with payload");
-          this.appEvents.trigger("card:show", {
-            cardType: "user",
-            username: uname,
-            target: anchor,
-          });
+          if (debug) console.log("online-users-sidebar: trying appEvents variants");
+
+          // Variant A: object payload (newer)
+          try {
+            this.appEvents.trigger("card:show", {
+              cardType: "user",
+              username: uname,
+              target: anchor,
+            });
+            fired = true;
+          } catch {}
+
+          // Variant B: explicit type + username + target
+          try {
+            this.appEvents.trigger("card:show", "user", uname, anchor);
+            fired = true;
+          } catch {}
+
+          // Variant C: username + target
+          try {
+            this.appEvents.trigger("card:show", uname, anchor);
+            fired = true;
+          } catch {}
+
+          // Variant D: alternate event names sometimes used by core/plugins
+          try {
+            this.appEvents.trigger("card:open", "user", uname, anchor);
+            fired = true;
+          } catch {}
+          try {
+            this.appEvents.trigger("user-card:show", uname, anchor);
+            fired = true;
+          } catch {}
+
+          if (debug) console.log("online-users-sidebar: appEvents fired =", fired);
         } else if (debug) {
           console.log("online-users-sidebar: this.appEvents is not available");
         }
@@ -484,7 +514,7 @@ export default Component.extend({
         }
         if (debug) console.log("online-users-sidebar: appEvents did not show card, dispatching hover events");
         tryHoverEvents();
-      }, 150);
+      }, 250);
     };
 
     // Attempt 4: Synthesize hover events as last resort

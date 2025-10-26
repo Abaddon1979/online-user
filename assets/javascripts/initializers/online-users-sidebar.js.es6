@@ -7,7 +7,7 @@ export default {
     withPluginApi("0.1", (api) => {
       // Attach core user-card behavior to our sidebar container (safe if method exists)
       try {
-        api.attachUserCard?.(".ous-sidebar");
+        api.attachUserCard?.(".ous-sidebar .user-name, .ous-sidebar a[data-user-card], .ous-sidebar .trigger-user-card");
       } catch (e) {}
 
       // Expose a global helper so the component can call the core API directly

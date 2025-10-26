@@ -162,3 +162,25 @@
 .user-card {
   z-index: 10010 !important;
 }
+
+/* Debug helpers when admin setting `online_user_debug` is ON (we toggle body.ous-debug) */
+.ous-debug {
+  /* Make sure usernames are visible and highlighted for debugging */
+  .ous-sidebar .user-name {
+    outline: 1px dashed #e66;
+    color: #fff !important;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+  }
+
+  /* Allow interactions even if sidebar is collapsed, so hover testing still works */
+  .ous-sidebar.collapsed .online-users-content {
+    pointer-events: auto;
+  }
+
+  /* Outline the user card when it appears to confirm visibility and placement */
+  .user-card,
+  .user-card-container,
+  #user-card {
+    outline: 2px solid #4caf50;
+  }
+}

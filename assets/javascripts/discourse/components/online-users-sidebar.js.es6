@@ -363,6 +363,19 @@ export default Component.extend({
       return;
     }
 
+    // Additional snapshot of site settings that can influence cards
+    const ss = this.siteSettings || {};
+    if (debug) {
+      try {
+        console.log("online-users-sidebar: site settings snapshot", {
+          enable_user_cards: ss.enable_user_cards,
+          login_required: ss.login_required,
+          enable_user_directory: ss.enable_user_directory,
+          user_card_background: ss.user_card_background,
+        });
+      } catch {}
+    }
+
     // Ensure attributes for core handlers/positioning
     try {
       anchor.classList.add("trigger-user-card");
@@ -539,8 +552,11 @@ export default Component.extend({
       setTimeout(() => {
         if (isCardVisible()) {
           if (debug) console.log("online-users-sidebar: user card visible via hover events");
-        } else if (debug) {
-          console.log("online-users-sidebar: user card still not visible after all attempts");
+        } else {
+          if (debug) console.warn("online-users-sidebar: user card still not visible after all attempts; falling back to profile navigation");
+          try {
+            window.location.assign(`/u/${encodeURIComponent(uname)}`);
+          } catch {}
         }
       }, 150);
     };

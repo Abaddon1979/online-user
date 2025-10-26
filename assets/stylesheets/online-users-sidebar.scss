@@ -184,3 +184,111 @@
     outline: 2px solid #4caf50;
   }
 }
+
+/* Custom modal usercard (used when online_user_custom_card is enabled) */
+.ous-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 11000; /* above core user-card (10010) and our sidebar */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.ous-modal {
+  background: var(--secondary);
+  color: var(--primary-high);
+  width: 100%;
+  max-width: 520px;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  overflow: hidden;
+  border: 1px solid var(--primary-low);
+}
+
+.ous-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--tertiary-low, var(--primary-very-low));
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--primary-low);
+
+  .user {
+    display: flex;
+    align-items: center;
+
+    .modal-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      margin-right: 10px;
+    }
+
+    .names {
+      display: flex;
+      flex-direction: column;
+
+      .username {
+        font-weight: 700;
+        color: var(--primary-high);
+      }
+      .name {
+        font-size: 12px;
+        color: var(--primary-medium);
+      }
+    }
+  }
+
+  .close {
+    font-size: 20px;
+    line-height: 1;
+    padding: 4px 8px;
+    color: var(--primary-high);
+  }
+}
+
+.ous-modal-body {
+  padding: 14px;
+
+  .bio.cooked {
+    margin-bottom: 12px;
+  }
+
+  .user-stats {
+    display: flex;
+    gap: 12px;
+    margin: 8px 0 14px 0;
+    .stat {
+      font-size: 12px;
+      color: var(--primary-medium);
+      background: var(--primary-very-low);
+      padding: 4px 8px;
+      border-radius: 12px;
+      border: 1px solid var(--primary-low);
+    }
+  }
+
+  .actions {
+    display: flex;
+    justify-content: flex-end;
+
+    .btn.btn-primary {
+      background: var(--tertiary);
+      color: var(--secondary);
+      border: 1px solid var(--tertiary);
+      &:hover { filter: brightness(1.05); }
+    }
+  }
+}
+
+.ous-modal-loading,
+.ous-modal-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px;
+  color: var(--primary-medium);
+}

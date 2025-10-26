@@ -38,3 +38,8 @@ plugins:
     default: false
     client: true
     description: "Enable debug logging for usercard interactions"
+
+  online_user_custom_card:
+    default: true
+    client: true
+    description: "Use a custom modal usercard for the online users sidebar instead of the core user card"

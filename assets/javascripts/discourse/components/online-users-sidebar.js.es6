@@ -14,6 +14,21 @@ export default Component.extend({
   init() {
     this._super(...arguments);
     this.set("onlineUsers", {});
+    // State for custom modal usercard
+    this.setProperties({
+      showCustomCard: false,
+      customCardLoading: false,
+      customCardData: null,
+      customCardError: null,
+    });
+    // Bind close/stop functions for modal clicks so `this` context persists
+    this.closeCardFn = (evt) => {
+      this._overlayClick(evt);
+    };
+    this.stopPropFn = (evt) => {
+      try { evt?.stopPropagation?.(); } catch {}
+    };
+
     // Respect site setting for initial collapsed state
     this.set("collapsed", !!this.siteSettings?.online_user_start_collapsed);
     // eslint-disable-next-line no-console
@@ -386,6 +401,12 @@ export default Component.extend({
 
     if (debug) console.log("online-users-sidebar: username resolved", uname);
 
+    // Custom modal usercard path
+    if (this.siteSettings?.online_user_custom_card) {
+      this._openCustomCard(uname);
+      return;
+    }
+
     // Helper: detect if a user card element appeared
     const isCardVisible = () => {
       try {
@@ -566,6 +587,58 @@ export default Component.extend({
       // If plugin API not available, jump straight to require fallback
       tryRequire();
     }
+  },
+
+  _openCustomCard(username) {
+    const debug = this.siteSettings?.online_user_debug;
+    try { if (debug) console.log("online-users-sidebar: opening custom card", { username }); } catch {}
+
+    this.setProperties({
+      showCustomCard: true,
+      customCardLoading: true,
+      customCardError: null,
+      customCardData: null,
+    });
+
+    if (!this._escHandler) {
+      this._escHandler = (e) => {
+        if (e?.key === "Escape") {
+          this._closeCustomCard();
+        }
+      };
+      try { document.addEventListener("keydown", this._escHandler); } catch {}
+    }
+
+    ajax(`/u/${encodeURIComponent(username)}/card.json`)
+      .then((data) => {
+        this.set("customCardData", data?.user || data);
+      })
+      .catch((e) => {
+        this.set("customCardError", e);
+        try { console.error("online-users-sidebar: custom card fetch failed", e); } catch {}
+      })
+      .finally(() => {
+        this.set("customCardLoading", false);
+      });
+  },
+
+  _closeCustomCard() {
+    this.set("showCustomCard", false);
+    if (this._escHandler) {
+      try { document.removeEventListener("keydown", this._escHandler); } catch {}
+      this._escHandler = null;
+    }
+  },
+
+  _overlayClick(evt) {
+    if (evt && evt.target !== evt.currentTarget) {
+      return;
+    }
+    this._closeCustomCard();
+  },
+
+  _stop(evt) {
+    try { evt?.stopPropagation?.(); } catch {}
   },
 
   actions: {

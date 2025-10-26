@@ -137,6 +137,55 @@ export default Component.extend({
     // this.element.addEventListener("click", this._ousClickHandler);
     // try { console.log("online-users-sidebar: bound click handler"); } catch {}
     try { console.log("online-users-sidebar: not binding click handler (using core user-link)"); } catch {}
+
+    // Debug: listen for core card lifecycle events
+    if (this.siteSettings?.online_user_debug && this.appEvents) {
+      try {
+        this._cardShowListener = function () {
+          try { console.log("online-users-sidebar: appEvents card:show", arguments); } catch {}
+        };
+        this._cardShownListener = function () {
+          try { console.log("online-users-sidebar: appEvents card:shown", arguments); } catch {}
+        };
+        this._cardHideListener = function () {
+          try { console.log("online-users-sidebar: appEvents card:hide", arguments); } catch {}
+        };
+        this.appEvents.on("card:show", this, this._cardShowListener);
+        this.appEvents.on("card:shown", this, this._cardShownListener);
+        this.appEvents.on("card:hide", this, this._cardHideListener);
+      } catch (e) {
+        try { console.log("online-users-sidebar: failed to bind card debug listeners", e); } catch {}
+      }
+    }
+
+    // When debug enabled, add body class and observe DOM for user-card
+    if (this.siteSettings?.online_user_debug) {
+      try { document.body.classList.add("ous-debug"); } catch {}
+      try {
+        const target = document.body;
+        this._cardObserver = new MutationObserver((mutations) => {
+          try {
+            for (const m of mutations) {
+              for (const node of m.addedNodes || []) {
+                if (!(node instanceof HTMLElement)) { continue; }
+                const card = node.matches?.(".user-card, .user-card-container, #user-card")
+                  ? node
+                  : node.querySelector?.(".user-card, .user-card-container, #user-card");
+                if (card) {
+                  const rect = card.getBoundingClientRect?.();
+                  let style;
+                  try { style = window.getComputedStyle(card); } catch {}
+                  try { console.log("online-users-sidebar: detected user-card in DOM", { card, rect, style }); } catch {}
+                }
+              }
+            }
+          } catch {}
+        });
+        this._cardObserver.observe(target, { childList: true, subtree: true });
+      } catch (e) {
+        try { console.log("online-users-sidebar: card observer bind failed", e); } catch {}
+      }
+    }
   },
 
   willDestroyElement() {
@@ -150,6 +199,26 @@ export default Component.extend({
       } catch {}
       this._ousClickHandler = null;
     }
+    if (this.appEvents) {
+      try {
+        if (this._cardShowListener) this.appEvents.off("card:show", this, this._cardShowListener);
+        if (this._cardShownListener) this.appEvents.off("card:shown", this, this._cardShownListener);
+        if (this._cardHideListener) this.appEvents.off("card:hide", this, this._cardHideListener);
+      } catch (e) {
+        try { console.log("online-users-sidebar: failed to unbind card debug listeners", e); } catch {}
+      }
+      this._cardShowListener = this._cardShownListener = this._cardHideListener = null;
+    }
+
+    // Disconnect debug observer and remove debug class
+    if (this._cardObserver) {
+      try { this._cardObserver.disconnect(); } catch {}
+      this._cardObserver = null;
+    }
+    if (this.siteSettings?.online_user_debug) {
+      try { document.body.classList.remove("ous-debug"); } catch {}
+    }
+
     try {
       document.body.classList.remove("online-users-sidebar-open");
       if (document?.documentElement?.style?.setProperty) {

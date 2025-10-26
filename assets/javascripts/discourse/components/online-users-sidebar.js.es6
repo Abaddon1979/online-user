@@ -14,16 +14,19 @@ export default Component.extend({
   init() {
     this._super(...arguments);
     this.set("onlineUsers", {});
-    // State for custom modal usercard
+    // State for custom usercard popover (anchored to username)
     this.setProperties({
       showCustomCard: false,
       customCardLoading: false,
       customCardData: null,
       customCardError: null,
+      customCardGroups: null,
+      customCardStyle: "",
+      customCardAnchor: null,
     });
-    // Bind close/stop functions for modal clicks so `this` context persists
-    this.closeCardFn = (evt) => {
-      this._overlayClick(evt);
+    // Bind close/stop functions for popover
+    this.closeCardFn = () => {
+      this._closeCustomCard();
     };
     this.stopPropFn = (evt) => {
       try { evt?.stopPropagation?.(); } catch {}
@@ -401,9 +404,9 @@ export default Component.extend({
 
     if (debug) console.log("online-users-sidebar: username resolved", uname);
 
-    // Custom modal usercard path
+    // Custom usercard popover path
     if (this.siteSettings?.online_user_custom_card) {
-      this._openCustomCard(uname);
+      this._openCustomCard(uname, anchor);
       return;
     }
 
@@ -589,17 +592,20 @@ export default Component.extend({
     }
   },
 
-  _openCustomCard(username) {
+  _openCustomCard(username, anchor) {
     const debug = this.siteSettings?.online_user_debug;
-    try { if (debug) console.log("online-users-sidebar: opening custom card", { username }); } catch {}
+    try { if (debug) console.log("online-users-sidebar: opening custom card", { username, anchor }); } catch {}
 
     this.setProperties({
       showCustomCard: true,
       customCardLoading: true,
       customCardError: null,
       customCardData: null,
+      customCardGroups: null,
+      customCardAnchor: anchor || null,
     });
 
+    // ESC to close
     if (!this._escHandler) {
       this._escHandler = (e) => {
         if (e?.key === "Escape") {
@@ -609,6 +615,33 @@ export default Component.extend({
       try { document.addEventListener("keydown", this._escHandler); } catch {}
     }
 
+    // Outside click to close
+    if (!this._docClickHandler) {
+      this._docClickHandler = (e) => {
+        try {
+          const pop = document.querySelector(".ous-popover");
+          if (!this.showCustomCard || !pop) return;
+          if (pop.contains(e.target)) return;
+          if (this.customCardAnchor && this.customCardAnchor.contains && this.customCardAnchor.contains(e.target)) return;
+          this._closeCustomCard();
+        } catch {}
+      };
+      try { document.addEventListener("mousedown", this._docClickHandler, true); } catch {}
+    }
+
+    // Position after render and on resize/scroll
+    if (!this._repositionBound) {
+      this._repositionBound = () => this._repositionCustomCard();
+    }
+    try {
+      window.addEventListener("resize", this._repositionBound);
+      window.addEventListener("scroll", this._repositionBound, true);
+    } catch {}
+
+    // Initial positioning
+    try { scheduleOnce("afterRender", this, this._repositionCustomCard); } catch {}
+
+    // Fetch user card data
     ajax(`/u/${encodeURIComponent(username)}/card.json`)
       .then((data) => {
         this.set("customCardData", data?.user || data);
@@ -619,7 +652,16 @@ export default Component.extend({
       })
       .finally(() => {
         this.set("customCardLoading", false);
+        try { scheduleOnce("afterRender", this, this._repositionCustomCard); } catch {}
       });
+
+    // Fetch groups membership (best-effort)
+    ajax(`/u/${encodeURIComponent(username)}/groups.json`)
+      .then((g) => {
+        const groups = g?.groups || g?.group_memberships || [];
+        this.set("customCardGroups", groups);
+      })
+      .catch(() => {});
   },
 
   _closeCustomCard() {
@@ -628,12 +670,60 @@ export default Component.extend({
       try { document.removeEventListener("keydown", this._escHandler); } catch {}
       this._escHandler = null;
     }
+    if (this._docClickHandler) {
+      try { document.removeEventListener("mousedown", this._docClickHandler, true); } catch {}
+      this._docClickHandler = null;
+    }
+    if (this._repositionBound) {
+      try {
+        window.removeEventListener("resize", this._repositionBound);
+        window.removeEventListener("scroll", this._repositionBound, true);
+      } catch {}
+    }
+    this._repositionBound = null;
+    this.setProperties({
+      customCardAnchor: null,
+      customCardStyle: "",
+    });
+  },
+
+
+  _repositionCustomCard() {
+    try {
+      const anchor = this.customCardAnchor;
+      if (!anchor) return;
+      const pop = document.querySelector(".ous-popover");
+      if (!pop) return;
+      const rect = anchor.getBoundingClientRect();
+      const popRect = pop.getBoundingClientRect();
+      const margin = 8;
+      const vw = window.innerWidth || document.documentElement.clientWidth;
+      const vh = window.innerHeight || document.documentElement.clientHeight;
+
+      let left = rect.right + margin;
+      let top = rect.top;
+
+      // If overflows to the right, place to the left of anchor
+      if (left + popRect.width + margin > vw) {
+        left = rect.left - popRect.width - margin;
+      }
+      // Clamp horizontally
+      if (left < margin) left = margin;
+      if (left + popRect.width + margin > vw) left = Math.max(margin, vw - popRect.width - margin);
+
+      // Clamp vertically
+      if (top + popRect.height + margin > vh) {
+        top = Math.max(margin, vh - popRect.height - margin);
+      }
+      if (top < margin) top = margin;
+
+      // Position fixed to viewport (no scroll offsets)
+      const style = `top:${Math.round(top)}px;left:${Math.round(left)}px;`;
+      this.set("customCardStyle", style);
+    } catch {}
   },
 
   _overlayClick(evt) {
-    if (evt && evt.target !== evt.currentTarget) {
-      return;
-    }
     this._closeCustomCard();
   },
 

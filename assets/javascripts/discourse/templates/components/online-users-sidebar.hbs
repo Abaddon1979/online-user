@@ -45,50 +45,57 @@
 </div>
 
 {{#if this.showCustomCard}}
-  <div class="ous-modal-overlay" {{on "click" this.closeCardFn}}>
-    <div class="ous-modal" {{on "click" this.stopPropFn}}>
+  <div class="ous-popover" style="{{this.customCardStyle}}" {{on "click" this.stopPropFn}}>
+    <div class="ous-popover-header">
+      <div class="user">
+        {{#if this.customCardData}}
+          {{avatar this.customCardData imageSize="medium" extraClasses="popover-avatar"}}
+        {{/if}}
+        <div class="names">
+          <span class="username">@{{this.customCardData.username}}</span>
+          {{#if this.customCardData.name}}
+            <span class="name">{{this.customCardData.name}}</span>
+          {{/if}}
+        </div>
+      </div>
+      <button class="btn btn-flat close" {{on "click" this.closeCardFn}} aria-label="Close">×</button>
+    </div>
+
+    <div class="ous-popover-body">
       {{#if this.customCardLoading}}
-        <div class="ous-modal-loading">
+        <div class="ous-popover-loading">
           <div class="spinner"></div>
           <span>Loading…</span>
         </div>
       {{else if this.customCardError}}
-        <div class="ous-modal-error">
-          Failed to load user card.
-        </div>
+        <div class="ous-popover-error">Failed to load user card.</div>
       {{else}}
-        <div class="ous-modal-header">
-          <div class="user">
-            {{#if this.customCardData}}
-              {{avatar this.customCardData imageSize="large" extraClasses="modal-avatar"}}
-            {{/if}}
-            <div class="names">
-              <span class="username">@{{this.customCardData.username}}</span>
-              {{#if this.customCardData.name}}
-                <span class="name">{{this.customCardData.name}}</span>
-              {{/if}}
-            </div>
+        {{#if this.customCardData.bio_cooked}}
+          <div class="bio cooked">{{html-safe this.customCardData.bio_cooked}}</div>
+        {{/if}}
+
+        {{#if this.customCardGroups}}
+          <div class="groups">
+            {{#each this.customCardGroups as |g|}}
+              <a class="group-chip" href="/g/{{g.name}}">{{#if g.full_name}}{{g.full_name}}{{else}}{{g.name}}{{/if}}</a>
+            {{/each}}
           </div>
-          <button class="btn btn-flat close" {{on "click" this.closeCardFn}} aria-label="Close">×</button>
-        </div>
+        {{/if}}
 
-        <div class="ous-modal-body">
-          {{#if this.customCardData.bio_cooked}}
-            <div class="bio cooked">{{html-safe this.customCardData.bio_cooked}}</div>
-          {{/if}}
-
-          {{#if this.customCardData.stats}}
-            <div class="user-stats">
-              <span class="stat">{{this.customCardData.stats.posts_read_count}} read</span>
-              <span class="stat">{{this.customCardData.stats.topic_count}} topics</span>
-              <span class="stat">{{this.customCardData.stats.post_count}} posts</span>
-            </div>
-          {{/if}}
-
-          <div class="actions">
-            <a class="btn btn-primary" href="/u/{{this.customCardData.username}}">View Profile</a>
+        {{#if this.customCardData.stats}}
+          <div class="user-stats">
+            <span class="stat">{{this.customCardData.stats.posts_read_count}} read</span>
+            <span class="stat">{{this.customCardData.stats.topic_count}} topics</span>
+            <span class="stat">{{this.customCardData.stats.post_count}} posts</span>
           </div>
+        {{/if}}
+
+        <div class="actions">
+          <a class="btn btn-primary" href="/new-message?username={{this.customCardData.username}}">Message</a>
+          <a class="btn btn-secondary" href="/chat?dm={{this.customCardData.username}}">Chat</a>
+          <a class="btn" href="/u/{{this.customCardData.username}}">Profile</a>
         </div>
+      {{/else}}
       {{/if}}
     </div>
   </div>

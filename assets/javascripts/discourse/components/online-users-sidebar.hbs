@@ -87,18 +87,13 @@
                   <span class="title-badge">{{this.customCardData.title}}</span>
                 {{/if}}
               </div>
-              <div class="quick-message">
-                <textarea
-                  class="quick-message-input"
-                  placeholder="Type a message… Press Ctrl+Enter to send"
-                  value={{this.quickMessageText}}
-                  {{on "input" this.quickMessageInput}}
-                  {{on "keydown" this.quickMessageKeydown}}
-                ></textarea>
-                {{#if this.quickMessageError}}
-                  <div class="quick-message-error">{{this.quickMessageError}}</div>
-                {{/if}}
-              </div>
+              {{#if this.customCardGroups}}
+                <div class="groups">
+                  {{#each this.customCardGroups as |g|}}
+                    <a class="group-chip" href="/g/{{g.name}}">{{#if g.full_name}}{{g.full_name}}{{else}}{{g.name}}{{/if}}</a>
+                  {{/each}}
+                </div>
+              {{/if}}
             </div>
 
             <div class="right-section">
@@ -163,13 +158,6 @@
                 </div>
               </div>
 
-              {{#if this.customCardGroups}}
-                <div class="groups">
-                  {{#each this.customCardGroups as |g|}}
-                    <a class="group-chip" href="/g/{{g.name}}">{{#if g.full_name}}{{g.full_name}}{{else}}{{g.name}}{{/if}}</a>
-                  {{/each}}
-                </div>
-              {{/if}}
 
               <div class="actions">
                 <a class="btn btn-primary" href="/new-message?username={{this.customCardData.username}}">Message</a>

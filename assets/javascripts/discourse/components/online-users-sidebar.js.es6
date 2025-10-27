@@ -719,13 +719,6 @@ export default Component.extend({
         try { scheduleOnce("afterRender", this, this._repositionCustomCard); } catch {}
       });
 
-    // Fetch groups membership (best-effort)
-    ajax(`/u/${encodeURIComponent(username)}/groups.json`)
-      .then((g) => {
-        const groups = g?.groups || g?.group_memberships || [];
-        this.set("customCardGroups", groups);
-      })
-      .catch(() => {});
 
     // Fetch user summary (stats, badges, etc.)
     ajax(`/u/${encodeURIComponent(username)}/summary.json`)

@@ -602,6 +602,9 @@ export default Component.extend({
       customCardError: null,
       customCardData: null,
       customCardGroups: null,
+      customCardSummary: null,
+      customCardBadges: null,
+      customCardTLProgress: 0,
       customCardAnchor: anchor || null,
     });
 
@@ -662,6 +665,22 @@ export default Component.extend({
         this.set("customCardGroups", groups);
       })
       .catch(() => {});
+
+    // Fetch user summary (stats, badges, etc.)
+    ajax(`/u/${encodeURIComponent(username)}/summary.json`)
+      .then((summary) => {
+        try {
+          const badges = summary?.badges || summary?.user_badges || [];
+          this.setProperties({
+            customCardSummary: summary || null,
+            customCardBadges: badges || [],
+          });
+          const tl = this.customCardData?.trust_level ?? summary?.user_summary?.trust_level ?? 0;
+          const progress = Math.max(0, Math.min(100, Math.round((Number(tl) || 0) * 25)));
+          this.set("customCardTLProgress", progress);
+        } catch {}
+      })
+      .catch(() => {});
   },
 
   _closeCustomCard() {
@@ -684,6 +703,11 @@ export default Component.extend({
     this.setProperties({
       customCardAnchor: null,
       customCardStyle: "",
+      customCardSummary: null,
+      customCardBadges: null,
+      customCardTLProgress: 0,
+      customCardGroups: null,
+      customCardData: null,
     });
   },
 

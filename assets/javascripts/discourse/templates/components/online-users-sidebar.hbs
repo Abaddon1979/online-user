@@ -71,32 +71,102 @@
         {{#if this.customCardError}}
           <div class="ous-popover-error">Failed to load user card.</div>
         {{else}}
-          {{#if this.customCardData.bio_cooked}}
-            <div class="bio cooked">{{html-safe this.customCardData.bio_cooked}}</div>
-          {{/if}}
-
-          {{#if this.customCardGroups}}
-            <div class="groups">
-              {{#each this.customCardGroups as |g|}}
-                <a class="group-chip" href="/g/{{g.name}}">{{#if g.full_name}}{{g.full_name}}{{else}}{{g.name}}{{/if}}</a>
-              {{/each}}
+          <div class="card-layout">
+            <div class="left-section">
+              {{#if this.customCardData}}
+                {{avatar this.customCardData imageSize="xl" extraClasses="avatar"}}
+              {{/if}}
+              <div class="user-info">
+                <h2 class="display-name">{{this.customCardData.name}}</h2>
+                <p class="username">@{{this.customCardData.username}}</p>
+                {{#if this.customCardData.title}}
+                  <span class="title-badge">{{this.customCardData.title}}</span>
+                {{/if}}
+              </div>
+              <div class="action-buttons">
+                <a class="btn btn-primary" href="/u/{{this.customCardData.username}}">Profile</a>
+                <a class="btn btn-secondary" href="/new-message?username={{this.customCardData.username}}">Message</a>
+              </div>
             </div>
-          {{/if}}
 
-          {{#if this.customCardData.stats}}
-            <div class="user-stats">
-              <span class="stat">{{this.customCardData.stats.posts_read_count}} read</span>
-              <span class="stat">{{this.customCardData.stats.topic_count}} topics</span>
-              <span class="stat">{{this.customCardData.stats.post_count}} posts</span>
+            <div class="right-section">
+              {{#if this.customCardData.bio_cooked}}
+                <p class="bio">{{html-safe this.customCardData.bio_cooked}}</p>
+              {{/if}}
+
+              <div class="meta-info">
+                {{#if this.customCardData.created_at}}
+                  <div class="meta-item">
+                    <span>Joined {{this.customCardData.created_at}}</span>
+                  </div>
+                {{/if}}
+                {{#if this.customCardData.location}}
+                  <div class="meta-item">
+                    <span>{{this.customCardData.location}}</span>
+                  </div>
+                {{/if}}
+                {{#if this.customCardData.website}}
+                  <div class="meta-item">
+                    <a href="{{this.customCardData.website}}" target="_blank" rel="noopener">Website</a>
+                  </div>
+                {{/if}}
+              </div>
+
+              <div class="stats-grid">
+                <div class="stat-item">
+                  <span class="stat-value">{{this.customCardSummary.user_summary.post_count}}</span>
+                  <span class="stat-label">Posts</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-value">{{this.customCardSummary.user_summary.likes_received}}</span>
+                  <span class="stat-label">Likes</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-value">{{this.customCardSummary.user_summary.solved_count}}</span>
+                  <span class="stat-label">Solutions</span>
+                </div>
+              </div>
+
+              {{#if this.customCardBadges}}
+                <div class="badges-section">
+                  <h3 class="badges-title">Badges</h3>
+                  <div class="badges-list">
+                    {{#each this.customCardBadges as |b|}}
+                      <div class="badge">
+                        <span>{{b.emoji}}</span>
+                        <span>{{b.name}}</span>
+                      </div>
+                    {{/each}}
+                  </div>
+                </div>
+              {{/if}}
+
+              <div class="trust-level">
+                <div class="trust-header">
+                  <span class="trust-label">Trust Level</span>
+                  <span class="trust-value">Level {{this.customCardData.trust_level}}</span>
+                </div>
+                <div class="trust-bar">
+                  <div class="trust-progress" style="width: {{this.customCardTLProgress}}%"></div>
+                </div>
+              </div>
+
+              {{#if this.customCardGroups}}
+                <div class="groups">
+                  {{#each this.customCardGroups as |g|}}
+                    <a class="group-chip" href="/g/{{g.name}}">{{#if g.full_name}}{{g.full_name}}{{else}}{{g.name}}{{/if}}</a>
+                  {{/each}}
+                </div>
+              {{/if}}
+
+              <div class="actions">
+                <a class="btn btn-primary" href="/new-message?username={{this.customCardData.username}}">Message</a>
+                <a class="btn btn-secondary" href="/chat?dm={{this.customCardData.username}}">Chat</a>
+                <a class="btn" href="/u/{{this.customCardData.username}}">Profile</a>
+              </div>
             </div>
-          {{/if}}
-
-          <div class="actions">
-            <a class="btn btn-primary" href="/new-message?username={{this.customCardData.username}}">Message</a>
-            <a class="btn btn-secondary" href="/chat?dm={{this.customCardData.username}}">Chat</a>
-            <a class="btn" href="/u/{{this.customCardData.username}}">Profile</a>
           </div>
-        {{/if}}
+        {{/else}}
       {{/if}}
     </div>
   </div>

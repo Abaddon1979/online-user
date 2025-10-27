@@ -354,6 +354,37 @@
 .ous-popover-body {
   padding: 12px;
 
+  /* Quick message input under avatar */
+  .quick-message {
+    width: 100%;
+    margin-top: 8px;
+
+    .quick-message-input {
+      width: 100%;
+      min-height: 72px;
+      resize: vertical;
+      background: var(--primary-very-low);
+      color: var(--primary-high);
+      border: 1px solid var(--primary-low);
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 13px;
+      line-height: 1.4;
+      outline: none;
+
+      &:focus {
+        border-color: var(--tertiary);
+        box-shadow: 0 0 0 2px color-mix(in srgb, var(--tertiary) 25%, transparent);
+      }
+    }
+
+    .quick-message-error {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--danger, #d9534f);
+    }
+  }
+
   .bio.cooked {
     margin-bottom: 10px;
   }

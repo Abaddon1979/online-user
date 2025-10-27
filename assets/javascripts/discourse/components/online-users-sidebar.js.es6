@@ -23,6 +23,11 @@ export default Component.extend({
       customCardGroups: null,
       customCardStyle: "",
       customCardAnchor: null,
+      // Quick message + formatted join date/time
+      quickMessageText: "",
+      quickMessageError: null,
+      customCardJoinDate: null,
+      customCardJoinTime: null,
     });
     // Bind close/stop functions for popover
     this.closeCardFn = () => {
@@ -30,6 +35,32 @@ export default Component.extend({
     };
     this.stopPropFn = (evt) => {
       try { evt?.stopPropagation?.(); } catch {}
+    };
+
+    // Quick message handlers (bound to preserve `this`)
+    this.quickMessageInput = (evt) => {
+      try {
+        const v = evt?.target?.value ?? "";
+        this.set("quickMessageText", v);
+        this.set("quickMessageError", null);
+      } catch {}
+    };
+
+    this.quickMessageKeydown = (evt) => {
+      try {
+        if (evt?.key === "Enter" && (evt.ctrlKey || evt.metaKey)) {
+          evt.preventDefault?.();
+          const uname = this.customCardData?.username;
+          const text = (this.quickMessageText || "").trim();
+          if (!uname || !text) {
+            this.set("quickMessageError", "Enter a message to send.");
+            return;
+          }
+          this._sendQuickMessage(uname, text);
+        }
+      } catch (e) {
+        this.set("quickMessageError", "Failed to send (unexpected error)");
+      }
     };
 
     // Respect site setting for initial collapsed state
@@ -655,6 +686,29 @@ export default Component.extend({
             this.set("customCardGroups", user.groups);
           }
         } catch {}
+
+        // Format join date/time (MM-DD-YYYY and 12-hour time)
+        try {
+          const created = user?.created_at || user?.createdAt;
+          if (created) {
+            const d = new Date(created);
+            const mm = String(d.getMonth() + 1).padStart(2, "0");
+            const dd = String(d.getDate()).padStart(2, "0");
+            const yyyy = d.getFullYear();
+            const dateStr = `${mm}-${dd}-${yyyy}`;
+            const timeStr = d.toLocaleTimeString([], {
+              hour: "numeric",
+              minute: "2-digit",
+              hour12: true,
+            });
+            this.setProperties({
+              customCardJoinDate: dateStr,
+              customCardJoinTime: timeStr,
+            });
+          } else {
+            this.setProperties({ customCardJoinDate: null, customCardJoinTime: null });
+          }
+        } catch {}
       })
       .catch((e) => {
         this.set("customCardError", e);
@@ -718,6 +772,39 @@ export default Component.extend({
     });
   },
 
+
+  _sendQuickMessage(username, text) {
+    // Send a PM using Discourse composer endpoint
+    try {
+      this.set("quickMessageError", null);
+      ajax("/posts", {
+        type: "POST",
+        data: {
+          archetype: "private_message",
+          target_usernames: username,
+          title: `Quick message to ${username}`,
+          raw: text,
+        },
+      })
+        .then(() => {
+          this.set("quickMessageText", "");
+        })
+        .catch((e) => {
+          try {
+            // Prefer server-provided error; otherwise show generic
+            const msg =
+              e?.jqXHR?.responseJSON?.errors?.join?.(", ") ||
+              e?.message ||
+              "Failed to send message";
+            this.set("quickMessageError", msg);
+          } catch {
+            this.set("quickMessageError", "Failed to send message");
+          }
+        });
+    } catch {
+      this.set("quickMessageError", "Failed to send (unexpected error)");
+    }
+  },
 
   _repositionCustomCard() {
     try {

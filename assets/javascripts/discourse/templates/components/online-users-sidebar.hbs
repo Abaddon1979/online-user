@@ -87,9 +87,17 @@
                   <span class="title-badge">{{this.customCardData.title}}</span>
                 {{/if}}
               </div>
-              <div class="action-buttons">
-                <a class="btn btn-primary" href="/u/{{this.customCardData.username}}">Profile</a>
-                <a class="btn btn-secondary" href="/new-message?username={{this.customCardData.username}}">Message</a>
+              <div class="quick-message">
+                <textarea
+                  class="quick-message-input"
+                  placeholder="Type a message… Press Ctrl+Enter to send"
+                  value={{this.quickMessageText}}
+                  {{on "input" this.quickMessageInput}}
+                  {{on "keydown" this.quickMessageKeydown}}
+                ></textarea>
+                {{#if this.quickMessageError}}
+                  <div class="quick-message-error">{{this.quickMessageError}}</div>
+                {{/if}}
               </div>
             </div>
 
@@ -101,7 +109,7 @@
               <div class="meta-info">
                 {{#if this.customCardData.created_at}}
                   <div class="meta-item">
-                    <span>Joined {{this.customCardData.created_at}}</span>
+                    <span>Joined {{this.customCardJoinDate}} {{this.customCardJoinTime}}</span>
                   </div>
                 {{/if}}
                 {{#if this.customCardData.location}}

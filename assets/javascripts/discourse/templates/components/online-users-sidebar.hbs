@@ -2,11 +2,8 @@
   <div class="online-users-header" {{on "click" this.toggleCollapseFn}}>
     <span class="header-text">Online Users ({{this.totalOnlineCount}})</span>
     <span class="collapse-icon">
-      {{#if collapsed}}
-        ▶
-      {{else}}
-        ▼
-      {{/if}}
+      {{#if collapsed}}▶{{/if}}
+      {{#unless collapsed}}▼{{/unless}}
     </span>
   </div>
 
@@ -17,29 +14,35 @@
           <div class="spinner"></div>
           <span>Loading online users...</span>
         </div>
-      {{else}}
-        {{#each this.sortedGroups as |group|}}
-          <div class="user-group">
-            <div class="group-header">
-              {{group.displayName}}
+      {{/if}}
+
+      {{#unless this.loading}}
+        {{#if this.sortedGroups.length}}
+          {{#each this.sortedGroups as |group|}}
+            <div class="user-group">
+              <div class="group-header">
+                {{group.displayName}}
+              </div>
+              <div class="user-list">
+                {{#each group.users as |user|}}
+                  <div class="user-item" title="{{user.username}}">
+                    {{#if this.siteSettings.online_user_show_avatars}}
+                      {{avatar user imageSize="small" extraClasses="user-avatar"}}
+                    {{/if}}
+                    <a class="user-name trigger-user-card" data-user-card="{{user.username}}" href="/u/{{user.username}}" {{on "click" (fn this.openUserCardFn user)}}>{{user.username}}</a>
+                  </div>
+                {{/each}}
+              </div>
             </div>
-            <div class="user-list">
-              {{#each group.users as |user|}}
-                <div class="user-item" title="{{user.username}}">
-                  {{#if this.siteSettings.online_user_show_avatars}}
-                    {{avatar user imageSize="small" extraClasses="user-avatar"}}
-                  {{/if}}
-                  <a class="user-name trigger-user-card" data-user-card="{{user.username}}" href="/u/{{user.username}}" {{on "click" (fn this.openUserCardFn user)}}>{{user.username}}</a>
-                </div>
-              {{/each}}
-            </div>
-          </div>
-        {{else}}
+          {{/each}}
+        {{/if}}
+
+        {{#unless this.sortedGroups.length}}
           <div class="no-users">
             No users online
           </div>
-        {{/each}}
-      {{/if}}
+        {{/unless}}
+      {{/unless}}
     </div>
   {{/unless}}
 </div>
@@ -67,10 +70,14 @@
           <div class="spinner"></div>
           <span>Loading…</span>
         </div>
-      {{else}}
+      {{/if}}
+
+      {{#unless this.customCardLoading}}
         {{#if this.customCardError}}
           <div class="ous-popover-error">Failed to load user card.</div>
-        {{else}}
+        {{/if}}
+
+        {{#unless this.customCardError}}
           <div class="card-layout">
             <div class="left-section">
               {{#if this.customCardData}}
@@ -166,8 +173,8 @@
               </div>
             </div>
           </div>
-        {{/else}}
-      {{/if}}
+        {{/unless}}
+      {{/unless}}
     </div>
   </div>
 {{/if}}

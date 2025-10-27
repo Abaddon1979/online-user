@@ -299,8 +299,8 @@
   z-index: 11010; /* above core card and sidebar */
   background: var(--secondary);
   color: var(--primary-high);
-  width: 320px;
-  max-width: min(360px, calc(100vw - 16px));
+  width: 560px;
+  max-width: min(720px, calc(100vw - 24px));
   border: 1px solid var(--primary-low);
   border-radius: 8px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.3);
@@ -450,11 +450,11 @@
     flex-direction: column;
     align-items: center;
     gap: 10px;
-    min-width: 160px;
+    min-width: 180px;
 
     .avatar {
-      width: 96px;
-      height: 96px;
+      width: 120px;
+      height: 120px;
       border-radius: 50%;
       border: 3px solid var(--tertiary, #3b82f6);
       object-fit: cover;

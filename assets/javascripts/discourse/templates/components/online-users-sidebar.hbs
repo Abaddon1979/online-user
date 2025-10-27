@@ -51,9 +51,6 @@
   <div class="ous-popover" style="{{this.customCardStyle}}" {{on "click" this.stopPropFn}}>
     <div class="ous-popover-header">
       <div class="user">
-        {{#if this.customCardData}}
-          {{avatar this.customCardData imageSize="medium" extraClasses="popover-avatar"}}
-        {{/if}}
         <div class="names">
           <span class="username">@{{this.customCardData.username}}</span>
           {{#if this.customCardData.name}}
@@ -81,7 +78,7 @@
           <div class="card-layout">
             <div class="left-section">
               {{#if this.customCardData}}
-                {{avatar this.customCardData imageSize="xl" extraClasses="avatar"}}
+                {{avatar this.customCardData imageSize="large" extraClasses="avatar"}}
               {{/if}}
               <div class="user-info">
                 <h2 class="display-name">{{this.customCardData.name}}</h2>

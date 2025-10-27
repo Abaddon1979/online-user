@@ -647,7 +647,14 @@ export default Component.extend({
     // Fetch user card data
     ajax(`/u/${encodeURIComponent(username)}/card.json`)
       .then((data) => {
-        this.set("customCardData", data?.user || data);
+        const user = data?.user || data;
+        this.set("customCardData", user);
+        // Fallback: if groups endpoint is restricted, prefer groups included in user card JSON
+        try {
+          if (!this.customCardGroups && user?.groups && user.groups.length) {
+            this.set("customCardGroups", user.groups);
+          }
+        } catch {}
       })
       .catch((e) => {
         this.set("customCardError", e);
